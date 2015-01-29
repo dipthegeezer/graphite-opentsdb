@@ -63,7 +63,7 @@ init([]) ->
 %%-------------------------------------------------------------------------
 'WAIT_FOR_SOCKET'({socket_ready, Socket}, State) when is_port(Socket) ->
     % Now we own the socket
-    inet:setopts(Socket, [{active, once}, {packet, 2}, list]),
+    inet:setopts(Socket, [{active, once}, {packet, 0}, binary]),
         {ok, {IP, _Port}} = inet:peername(Socket),
         {next_state, 'WAIT_FOR_DATA', State#state{socket=Socket, addr=IP}, ?TIMEOUT};
 'WAIT_FOR_SOCKET'(Other, State) ->
