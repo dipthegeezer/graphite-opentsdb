@@ -1,8 +1,9 @@
 {application, erlgraphopen,
  [
-  {description, ""},
+  {description, "A client to push carbon data into OpenTSB"},
   {vsn, "1"},
-  {registered, []},
+  {modules,      [tcp_listener_server, tcp_echo_fsm]},
+  {registered,   [erlgraphopen_sup, tcp_listener_server]},
   {applications, [
                   kernel,
                   stdlib

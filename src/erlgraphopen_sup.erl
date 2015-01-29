@@ -21,7 +21,50 @@ start_link() ->
 %% ===================================================================
 %% Supervisor callbacks
 %% ===================================================================
+-define(MAX_RESTART,    5).
+-define(MAX_TIME,      60).
+-define(DEF_PORT,    6666).
 
+%%----------------------------------------------------------------------
+%% Supervisor behaviour callbacks
+%%----------------------------------------------------------------------
 init([]) ->
-    {ok, { {one_for_one, 5, 10}, []} }.
+  Port = get_app_env(listen_port, ?DEF_PORT),
+
+  {ok,
+    {_SupFlags = {one_for_one, ?MAX_RESTART, ?MAX_TIME},
+      [
+        % TCP Listener
+        {   tcp_server_sup,                          % Id       = internal id
+          {tcp_listener_server,start_link,[Port]}, % StartFun = {M, F, A}
+          permanent,                               % Restart  = permanent | transient | temporary
+          2000,                                    % Shutdown = brutal_kill | int() >= 0 | infinity
+          worker,                                  % Type     = worker | supervisor
+          [tcp_listener]                           % Modules  = [Module] | dynamic
+        },
+        % Client instance supervisor
+        {   tcp_client_sup,
+          {tcp_client_sup,start_link,[]},
+          permanent,                               % Restart  = permanent | transient | temporary
+          infinity,                                % Shutdown = brutal_kill | int() >= 0 | infinity
+          supervisor,                              % Type     = worker | supervisor
+          []                                       % Modules  = [Module] | dynamic
+        }
+      ]
+    }
+  }.
+
+%%----------------------------------------------------------------------
+%% Internal functions
+%%----------------------------------------------------------------------
+get_app_env(Opt, Default) ->
+  case application:get_env(application:get_application(), Opt) of
+    {ok, Val} -> Val;
+    _ ->
+      case init:get_argument(Opt) of
+        [[Val | _]] -> Val;
+        error       -> Default
+      end
+  end.
+
 
