@@ -73,8 +73,14 @@ init([]) ->
 
 %% Notification event coming from client
 'WAIT_FOR_DATA'({data, Data}, #state{socket=S} = State) ->
-    io:fwrite("Data: ~p.\n", [Data]),
-    %%ok = gen_tcp:send(S, Data),
+    %% My bit manipulation may not be right
+    DataChomped = binary:replace(Data, <<"\n">>, <<"">>),
+    [Metric,Value,Timestamp] = binary:split(DataChomped, <<" ">>, [global]),
+    Space = <<" ">>,
+    Send = <<<<"put">>/binary, Space/binary,
+                Metric/binary, Space/binary,
+                Timestamp/binary, Space/binary, Value/binary>>,
+    io:fwrite("Data: ~p.\n", [Send]),
     {next_state, 'WAIT_FOR_DATA', State, ?TIMEOUT};
 
 'WAIT_FOR_DATA'(timeout, State) ->
