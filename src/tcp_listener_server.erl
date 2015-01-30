@@ -39,7 +39,7 @@ start_link(Port) when is_integer(Port) ->
 %%----------------------------------------------------------------------
 init([Port]) ->
   process_flag(trap_exit, true),
-  Opts = [binary, {packet, 0}, {reuseaddr, true},
+  Opts = [binary, {packet, line}, {reuseaddr, true},
     {keepalive, true}, {backlog, 30}, {active, false}],
   case gen_tcp:listen(Port, Opts) of
     {ok, Listen_socket} ->
